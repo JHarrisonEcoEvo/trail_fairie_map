@@ -115,23 +115,28 @@ window.onload = function () {
 };
 
 // after map has been initialized
-
 fetch("https://script.google.com/macros/s/AKfycbydVKyOFSjBGOL3k54RTccEV3nTdnjGzVhpFhHk_oO3ujXH3eOcOWIPstPNkRfymjA/exec")
   .then(res => res.json())
   .then(geojson => {
-    L.geoJSON(geojson, {
-      onEachFeature: function (feature, layer) {
+    console.log("Loaded GeoJSON:", geojson);
+
+    const geoLayer = L.geoJSON(geojson, {
+      pointToLayer: function (feature, latlng) {
         const { lat, lon, note, id } = feature.properties;
 
         const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSdx2ENBZaDZ0ZKvUMo8jkxgbAaVX-iWdANxYT5ksUyO0V552Q/viewform?usp=pp_url&entry.619122964=${lat}&entry.1064411447=${lon}&entry.1131826171=${id}`;
 
-        const popup = `
-          <b>Existing Note:</b><br>${note || "—"}<br><br>
-          <a href="${formUrl}" target="_blank">✏️ Suggest an update to this point</a>
+        const popupContent = `
+          <b>Note:</b><br>${note || "—"}<br><br>
+          <a href="${formUrl}" target="_blank">✏️ Suggest update</a>
         `;
-        layer.bindPopup(popup);
+
+        return L.marker(latlng).bindPopup(popupContent);
       }
     }).addTo(map);
+
+    // auto-zoom to all points
+    map.fitBounds(geoLayer.getBounds());
   });
 
 </script>
