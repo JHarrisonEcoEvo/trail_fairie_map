@@ -83,6 +83,12 @@ window.onload = function () {
     attribution: '&copy; openstreetmap contributors'
   }).addTo(map);
 
+  // ✅ add a test marker
+  L.marker([41.3135, -105.5911])
+  .addTo(map)
+  .bindPopup("✅ This is a test marker")
+  .openPopup();
+  
   let clickTimeout;
 
   map.on("click", function(e) {
@@ -112,17 +118,7 @@ window.onload = function () {
     clearTimeout(clickTimeout);
     clickTimeout = null;
   });
-
-  const map = L.map('map').setView([41.3135, -105.5911], 11);
-
-  // tile layer...
-  L.tileLayer(...).addTo(map);
-
-  // add this:
-  L.marker([41.3135, -105.5911])
-    .addTo(map)
-    .bindPopup("✅ This is a test marker")
-    .openPopup();
+  
 };
 
 // after map has been initialized
