@@ -66,6 +66,7 @@
 </div>
 
 <script>
+window.onload = function () {
   // google form base URL and entry IDs for lat/lon
   const FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSf3FzIMKWKRrX5Qml3Kkdq4ZscgPe5xPZGW3aeB8u_vDWrbvg/viewform?usp=pp_url";
   const LAT_ID = "entry.1223436420";
@@ -92,4 +93,22 @@
       const popupContent = `
         <div class="popup">
           <b>Location:</b><br>${lat}, ${lon}<br><br>
-          <a href="${formUrl}" target="_blank">📝 Fill out form for this point</a_
+          <a href="${formUrl}" target="_blank">📝 Fill out form for this point</a>
+        </div>
+      `;
+
+      L.marker(e.latlng).addTo(map)
+        .bindPopup(popupContent)
+        .openPopup();
+    }, 350);
+  });
+
+  map.on("dblclick", function() {
+    clearTimeout(clickTimeout);
+    clickTimeout = null;
+  });
+};
+</script>
+
+</body>
+</html>
