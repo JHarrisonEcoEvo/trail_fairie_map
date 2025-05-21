@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Trail Fairies Project Map</title>
+  <title>Community Map: Click to Add a Point</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Leaflet CSS & JS -->
+  <!-- leaflet css & js -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -54,25 +54,97 @@
 
 <div class="container">
   <h1>Trail Fairies Project Map</h1>
-  <p>Howdy! Click anywhere on the map below to add a new trail need.</p>
-  <p>Follow the link in the popup to submit a report via form.</p>
+  <p>
+    Howdy! Click anywhere on the map below to add a new trail need.
+  </p>
+  <p>
+    Follow the link for your new point to a form that lets you input the problem.
+  </p>
   <p>
     Learn about the Trail Fairies on the
     <a href="https://www.laramiebikenet.org/">Bikenet</a> website. Even better,
     <a href="https://www.laramiebikenet.org/checkout/donate?donatePageId=62bc6433f5e7c719e90b7af3">donate</a>
-    to support trail repairs!
+    some cash to help us fix up our trails!
   </p>
 
   <div id="map"></div>
-</div>
+</div>  
 
 <script>
 window.onload = function () {
+  // google form base URL and entry IDs for lat/lon
   const FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSdx2ENBZaDZ0ZKvUMo8jkxgbAaVX-iWdANxYT5ksUyO0V552Q/viewform?usp=pp_url";
   const LAT_ID = "entry.619122964";
   const LON_ID = "entry.1064411447";
-  const ID_FIELD = "entry.1131826171";
 
-  const map = L.map('map').setView([41.3135, -105.5911], 11);
+  const map = L.map('map').setView([41.3135, -105.5911], 11);  // Laramie, WY with city-level zoom
 
-  L.tileLayer('https://
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; openstreetmap contributors'
+  }).addTo(map);
+
+  // ✅ add a test marker
+  L.marker([41.3135, -105.5911])
+  .addTo(map)
+  .bindPopup("✅ This is a test marker")
+  .openPopup();
+  
+  let clickTimeout;
+
+  map.on("click", function(e) {
+    if (clickTimeout) return;
+
+    clickTimeout = setTimeout(() => {
+      clickTimeout = null;
+
+      const lat = e.latlng.lat.toFixed(6);
+      const lon = e.latlng.lng.toFixed(6);
+      const formUrl = `${FORM_BASE}&${LAT_ID}=${lat}&${LON_ID}=${lon}`;
+
+      const popupContent = `
+        <div class="popup">
+          <b>Location:</b><br>${lat}, ${lon}<br><br>
+          <a href="${formUrl}" target="_blank">📝 Fill out form for this point</a>
+        </div>
+      `;
+
+      L.marker(e.latlng).addTo(map)
+        .bindPopup(popupContent)
+        .openPopup();
+    }, 350);
+  });
+
+  map.on("dblclick", function() {
+    clearTimeout(clickTimeout);
+    clickTimeout = null;
+  });
+
+  // after map has been initialized
+  fetch("https://script.google.com/macros/s/AKfycbydVKyOFSjBGOL3k54RTccEV3nTdnjGzVhpFhHk_oO3ujXH3eOcOWIPstPNkRfymjA/exec")
+    .then(res => res.json())
+    .then(geojson => {
+      console.log("Loaded GeoJSON:", geojson);
+
+      const geoLayer = L.geoJSON(geojson, {
+        pointToLayer: function (feature, latlng) {
+          const { lat, lon, note, id } = feature.properties;
+
+          const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSdx2ENBZaDZ0ZKvUMo8jkxgbAaVX-iWdANxYT5ksUyO0V552Q/viewform?usp=pp_url&entry.619122964=${lat}&entry.1064411447=${lon}&entry.1131826171=${id}`;
+
+          const popupContent = `
+            <b>Note:</b><br>${note || "—"}<br><br>
+            <a href="${formUrl}" target="_blank">✏️ Suggest update</a>
+          `;
+
+          return L.marker(latlng).bindPopup(popupContent);
+        }
+      }).addTo(map);
+
+      // auto-zoom to all points
+      map.fitBounds(geoLayer.getBounds());
+    });
+};
+</script>
+
+</body>
+</html>
