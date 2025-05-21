@@ -122,7 +122,8 @@ fetch("https://script.google.com/macros/s/AKfycbydVKyOFSjBGOL3k54RTccEV3nTdnjGzV
     L.geoJSON(geojson, {
       onEachFeature: function (feature, layer) {
         const { lat, lon, note, id } = feature.properties;
-        const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSdx2ENBZaDZ0ZKvUMo8jkxgbAaVX-iWdANxYT5ksUyO0V552Q/viewform?usp=pp_url&entry.619122964=41.5&entry.1064411447=105.6&entry.593747255=Minor+erosion+(cupping)&entry.1131826171=test`; 
+
+        const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSdx2ENBZaDZ0ZKvUMo8jkxgbAaVX-iWdANxYT5ksUyO0V552Q/viewform?usp=pp_url&entry.619122964=${lat}&entry.1064411447=${lon}&entry.1131826171=${id}`;
 
         const popup = `
           <b>Existing Note:</b><br>${note || "—"}<br><br>
