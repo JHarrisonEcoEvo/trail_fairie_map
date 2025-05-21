@@ -1,71 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Click Map → Fill Form</title>
+  <title>Map Project Splash Page</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- leaflet css & js -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <style>
-    html, body, #map {
-      height: 100%;
+    body {
+      font-family: sans-serif;
       margin: 0;
+      padding: 2rem;
+      background: #f7f7f7;
     }
-    .popup {
-      font-size: 14px;
+    h1 {
+      margin-top: 0;
+    }
+    #map {
+      height: 400px;
+      border: 2px solid #ccc;
+      margin-top: 1rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>🗺️ Community Points Map</h1>
+    <p>Welcome! Click anywhere on the map to add a point and submit a photo and notes via the form.</p>
+    <p>We’re collecting information from users like you to document this area.</p>
 
-<div id="map"></div>
+    <div id="map"></div>
+  </div>
 
-<script>
-  // update these to match your form’s entry IDs
-  const FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSf3FzIMKWKRrX5Qml3Kkdq4ZscgPe5xPZGW3aeB8u_vDWrbvg/viewform?usp=pp_url";
-  const LAT_ID = "entry.1223436420";
-  const LON_ID = "entry.319583298";
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  const map = L.map('map').setView([39.5, -98.35], 4); // center on usa
+  <!-- Map + Form Logic -->
+  <script>
+    const FORM_BASE = "https://docs.google.com/forms/d/e/ABC123/viewform?usp=pp_url";
+    const LAT_ID = "entry.123456";
+    const LON_ID = "entry.654321";
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; openstreetmap contributors'
-  }).addTo(map);
+    const map = L.map('map').setView([39.5, -98.35], 4);
 
-  let clickTimeout;
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri',
+      maxZoom: 19
+    }).addTo(map);
 
-  map.on("click", function(e) {
-  if (clickTimeout) return; // if we already have a click waiting, ignore
+    let clickTimeout;
 
-  clickTimeout = setTimeout(() => {
-    clickTimeout = null;
+    map.on("click", function(e) {
+      if (clickTimeout) return;
+      clickTimeout = setTimeout(() => {
+        clickTimeout = null;
 
-    const lat = e.latlng.lat.toFixed(6);
-    const lon = e.latlng.lng.toFixed(6);
+        const lat = e.latlng.lat.toFixed(6);
+        const lon = e.latlng.lng.toFixed(6);
+        const formUrl = `${FORM_BASE}&${LAT_ID}=${lat}&${LON_ID}=${lon}`;
 
-    const formUrl = `${FORM_BASE}&${LAT_ID}=${lat}&${LON_ID}=${lon}`;
-    const popupContent = `
-      <div class="popup">
-        <b>Location:</b><br>${lat}, ${lon}<br><br>
-        <a href="${formUrl}" target="_blank">Fill out form for this point</a>
-      </div>
-    `;
+        const popupContent = `
+          <b>Location:</b><br>${lat}, ${lon}<br><br>
+          <a href="${formUrl}" target="_blank">Fill out form for this point</a>
+        `;
 
-    L.marker(e.latlng).addTo(map)
-      .bindPopup(popupContent)
-      .openPopup();
-  }, 350); // delay to check if it's a single click
-});
+        L.marker(e.latlng).addTo(map)
+          .bindPopup(popupContent)
+          .openPopup();
+      }, 250);
+    });
 
-map.on("dblclick", function() {
-  clearTimeout(clickTimeout);
-  clickTimeout = null;
-});
-
-</script>
-
+    map.on("dblclick", function() {
+      clearTimeout(clickTimeout);
+      clickTimeout = null;
+    });
+  </script>
 </body>
 </html>
