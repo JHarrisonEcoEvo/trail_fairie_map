@@ -67,6 +67,11 @@
     some cash to help us fix up our trails!
   </p>
 
+
+<p id="loading" style="text-align:center; font-size:1rem;">
+  ⏳ Loading Project locations...
+</p>
+
   <div id="map"></div>
 </div>  
 
@@ -79,15 +84,42 @@ window.onload = function () {
 
   const map = L.map('map').setView([41.3135, -105.5911], 11);  // Laramie, WY with city-level zoom
 
+  fetch("https://script.google.com/macros/s/AKfycbydVKyOFSjBGOL3k54RTccEV3nTdnjGzVhpFhHk_oO3ujXH3eOcOWIPstPNkRfymjA/exec")
+    .then(res => res.json())
+    .then(geojson => {
+      console.log("Loaded GeoJSON:", geojson);
+
+      const geoLayer = L.geoJSON(geojson, {
+        pointToLayer: function (feature, latlng) {
+          const { lat, lon, note, id } = feature.properties;
+
+          const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSdx2ENBZaDZ0ZKvUMo8jkxgbAaVX-iWdANxYT5ksUyO0V552Q/viewform?usp=pp_url&entry.619122964=${lat}&entry.1064411447=${lon}&entry.1131826171=${id}`;
+
+          const popupContent = `
+            <b>Note:</b><br>${note || "—"}<br><br>
+            <a href="${formUrl}" target="_blank">✏️ Suggest update</a>
+          `;
+
+          return L.marker(latlng).bindPopup(popupContent);
+        }
+      }).addTo(map);
+
+      
+    // ✅ zoom and then hide spinner
+    if (geojson.features.length > 0) {
+      map.fitBounds(geoLayer.getBounds(), { maxZoom: 15 });
+    }
+
+    document.getElementById("loading").style.display = "none";  // ✅ hide it
+  })
+  .catch(err => {
+    console.error("Failed to load GeoJSON:", err);
+    document.getElementById("loading").innerText = "⚠️ Failed to load points.";
+  });
+
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; openstreetmap contributors'
   }).addTo(map);
-
-  // ✅ add a test marker
-  L.marker([41.3135, -105.5911])
-  .addTo(map)
-  .bindPopup("✅ This is a test marker")
-  .openPopup();
   
   let clickTimeout;
 
@@ -111,7 +143,7 @@ window.onload = function () {
       L.marker(e.latlng).addTo(map)
         .bindPopup(popupContent)
         .openPopup();
-    }, 350);
+    }, 450);
   });
 
   map.on("dblclick", function() {
@@ -119,30 +151,6 @@ window.onload = function () {
     clickTimeout = null;
   });
 
-  // after map has been initialized
-  fetch("https://script.google.com/macros/s/AKfycbydVKyOFSjBGOL3k54RTccEV3nTdnjGzVhpFhHk_oO3ujXH3eOcOWIPstPNkRfymjA/exec")
-    .then(res => res.json())
-    .then(geojson => {
-      console.log("Loaded GeoJSON:", geojson);
-
-      const geoLayer = L.geoJSON(geojson, {
-        pointToLayer: function (feature, latlng) {
-          const { lat, lon, note, id } = feature.properties;
-
-          const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSdx2ENBZaDZ0ZKvUMo8jkxgbAaVX-iWdANxYT5ksUyO0V552Q/viewform?usp=pp_url&entry.619122964=${lat}&entry.1064411447=${lon}&entry.1131826171=${id}`;
-
-          const popupContent = `
-            <b>Note:</b><br>${note || "—"}<br><br>
-            <a href="${formUrl}" target="_blank">✏️ Suggest update</a>
-          `;
-
-          return L.marker(latlng).bindPopup(popupContent);
-        }
-      }).addTo(map);
-
-      // auto-zoom to all points
-      map.fitBounds(geoLayer.getBounds());
-    });
 };
 </script>
 
