@@ -86,7 +86,7 @@ window.onload = function () {
   const LON_ID = "entry.1064411447";
 
   const map = L.map('map').setView([41.3135, -105.5911], 11);  // Laramie, WY with city-level zoom
-
+  
   fetch("https://script.google.com/macros/s/AKfycbydVKyOFSjBGOL3k54RTccEV3nTdnjGzVhpFhHk_oO3ujXH3eOcOWIPstPNkRfymjA/exec")
     .then(res => res.json())
     .then(geojson => {
@@ -103,7 +103,18 @@ window.onload = function () {
             <a href="${formUrl}" target="_blank">✏️ Suggest update</a>
           `;
 
-          return L.marker(latlng).bindPopup(popupContent);
+          let fixedValue = (feature.properties.fixed || "").toString().toLowerCase().trim();
+          let color = (fixedValue === "true" || fixedValue === "yes" || fixedValue === "1") ? "green" : "blue";
+
+          const icon = L.divIcon({
+            className: 'custom-icon',
+            html: `<div style="background:${color}; width:12px; height:12px; border-radius:50%; border:2px solid white;"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+          });
+
+          return L.marker(latlng, { icon }).bindPopup(popupContent);
+
         }
       }).addTo(map);
 
@@ -120,8 +131,29 @@ window.onload = function () {
     document.getElementById("loading").innerText = "⚠️ Failed to load points.";
   });
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; openstreetmap contributors'
+  L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, etc.',
+    maxZoom: 19
+  }
+  ).addTo(map);
+
+  // Add labels as a separate transparent layer (hybrid effect)
+  L.tileLayer(
+  'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+  {
+    attribution: 'Labels &copy; Esri',
+    maxZoom: 19,
+    opacity: 0.8
+  }
+  ).addTo(map);
+  
+  L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors &mdash; Map data: &copy; OpenTopoMap',
+  maxZoom: 17,
+  opacity: 0.5
+
   }).addTo(map);
   
   let clickTimeout;
