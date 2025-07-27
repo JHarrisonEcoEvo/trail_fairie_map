@@ -1,14 +1,18 @@
 # Turn lat longs from a sheet into a geojson
 # This is a backup of what is in the Google Apps Script here:
-#https://script.google.com/u/0/home/projects/1TlnNqo8uoSX29xdMSFjSPFFrEI-6xyOaCt2qtUxt7VsgY1DMdfFpyE4X/edit
+#https://script.google.com/home/projects/1ag60c_quDHGdiYfIH3f6wMdyN1nM2LdehsDXIhKWvIS6ZhcB-r72FAvI/edit
+
+# This script is tied to the Google sheet via going to the sheet and clicking Extensions>Apps
+# also you can find it under the Google Apps app from Josh's trail fairies Google account
 function doGet() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   const data = sheet.getDataRange().getValues();
   const headers = data[0];
 
-  const latIndex = headers.indexOf("latitude");
-  const lonIndex = headers.indexOf("longitude");
-  const noteIndex = headers.indexOf("notes"); // change this if needed
+  const latIndex = headers.indexOf("Latitude");
+  const lonIndex = headers.indexOf("Longitude");
+  const noteIndex = headers.indexOf("Trail damage type"); // adjust if your column name is different
+  const fixedIndex = headers.indexOf("Is the problem fIxed"); // NEW
 
   const features = [];
 
@@ -23,6 +27,7 @@ function doGet() {
       note: row[noteIndex],
       lat: lat,
       lon: lon,
+      fixed: row[fixedIndex] // NEW
     };
 
     features.push({
