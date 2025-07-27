@@ -87,7 +87,7 @@ window.onload = function () {
 
   const map = L.map('map').setView([41.3135, -105.5911], 11);  // Laramie, WY with city-level zoom
   
-  fetch("https://script.google.com/macros/s/AKfycbydVKyOFSjBGOL3k54RTccEV3nTdnjGzVhpFhHk_oO3ujXH3eOcOWIPstPNkRfymjA/exec")
+  fetch("https://script.google.com/macros/s/AKfycbwFXmb9umCyswQT_T2OYjShHKcYCW0RN2pSUzt_lbd79JCgjQQc3cPNGO8F7lLKZrU/exec")
     .then(res => res.json())
     .then(geojson => {
       console.log("Loaded GeoJSON:", geojson);
@@ -103,17 +103,20 @@ window.onload = function () {
             <a href="${formUrl}" target="_blank">✏️ Suggest update</a>
           `;
 
-          let fixedValue = (feature.properties.fixed || "").toString().toLowerCase().trim();
-          let color = (fixedValue === "true" || fixedValue === "yes" || fixedValue === "1") ? "green" : "blue";
+          // color based on 'fixed' value
+          const markerColor = (fixed && fixed.toLowerCase() === "yes") ? "green" : "blue";
 
-          const icon = L.divIcon({
-            className: 'custom-icon',
-            html: `<div style="background:${color}; width:12px; height:12px; border-radius:50%; border:2px solid white;"></div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
+          const customIcon = L.circleMarker(latlng, {
+            radius: 8,
+            fillColor: markerColor,
+            color: "#000",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
           });
 
-          return L.marker(latlng, { icon }).bindPopup(popupContent);
+          customIcon.bindPopup(popupContent);
+          return customIcon;
 
         }
       }).addTo(map);
